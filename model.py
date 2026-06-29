@@ -117,43 +117,6 @@ useless_cols = [
     'fr_phos_ester'
 ]
 
-def compute_all_descriptors(smiles): ## NeurIPS | Baseline
-    mol = Chem.MolFromSmiles(smiles)
-    if mol is None:
-        return [None] * len(desc_names)
-    return [desc[1](mol) for desc in Descriptors.descList if desc[0] not in useless_cols]
-
-def compute_graph_features(smiles, graph_feats): ## NeurIPS | Baseline
-    mol = Chem.MolFromSmiles(smiles)
-    adj = rdmolops.GetAdjacencyMatrix(mol)
-    G = nx.from_numpy_array(adj)
-
-    graph_feats['graph_diameter'].append(nx.diameter(G) if nx.is_connected(G) else 0)
-    graph_feats['avg_shortest_path'].append(nx.average_shortest_path_length(G) if nx.is_connected(G) else 0)
-    graph_feats['num_cycles'].append(len(list(nx.cycle_basis(G))))
-
-def preprocessing(df): ## NeurIPS | Baseline 
-    desc_names = [desc[0] for desc in Descriptors.descList if desc[0] not in useless_cols]
-    print(desc_names)
-    descriptors = [compute_all_descriptors(smi) for smi in df['SMILES'].to_list()]
-
-    graph_feats = {'graph_diameter': [], 'avg_shortest_path': [], 'num_cycles': []}
-    for smile in df['SMILES']:
-         compute_graph_features(smile, graph_feats)
-        
-    result = pd.concat(
-        [
-            pd.DataFrame(descriptors, columns=desc_names),
-            pd.DataFrame(graph_feats)
-        ],
-        axis=1
-    )
-
-    result = result.replace([-np.inf, np.inf], np.nan)
-    return result
-
-train = pd.concat([train, preprocessing(train)], axis=1)
-test = pd.concat([test, preprocessing(test)], axis=1)
 
 all_features = train.columns[7:].tolist()
 features = {}
