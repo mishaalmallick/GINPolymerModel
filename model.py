@@ -117,13 +117,13 @@ useless_cols = [
     'fr_phos_ester'
 ]
 
-def compute_all_descriptors(smiles):
+def compute_all_descriptors(smiles): ## NeurIPS | Baseline
     mol = Chem.MolFromSmiles(smiles)
     if mol is None:
         return [None] * len(desc_names)
     return [desc[1](mol) for desc in Descriptors.descList if desc[0] not in useless_cols]
 
-def compute_graph_features(smiles, graph_feats):
+def compute_graph_features(smiles, graph_feats): ## NeurIPS | Baseline
     mol = Chem.MolFromSmiles(smiles)
     adj = rdmolops.GetAdjacencyMatrix(mol)
     G = nx.from_numpy_array(adj)
@@ -132,7 +132,7 @@ def compute_graph_features(smiles, graph_feats):
     graph_feats['avg_shortest_path'].append(nx.average_shortest_path_length(G) if nx.is_connected(G) else 0)
     graph_feats['num_cycles'].append(len(list(nx.cycle_basis(G))))
 
-def preprocessing(df):
+def preprocessing(df): ## NeurIPS | Baseline 
     desc_names = [desc[0] for desc in Descriptors.descList if desc[0] not in useless_cols]
     print(desc_names)
     descriptors = [compute_all_descriptors(smi) for smi in df['SMILES'].to_list()]
